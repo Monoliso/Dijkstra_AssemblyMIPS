@@ -23,13 +23,16 @@ main:
     li $v0, 10
 syscall
 
-ExtraerV:
-    addi $sp, $sp, -12
-    sw $ra, 8($sp)
-    sw $s0, 4($sp) # Puntero al buffer
+ExtraerV: # 55 líneas. Eso es bastante más que 30, casi el doble. Ésta versión debería manejar campos vacíos, comas seguidas, y nombres largos.
+    addi $sp, $sp, -16
+    sw $ra, 12($sp)
+    sw $s0, 8($sp) # Puntero al buffer
     move $s0, $a0
-    sw $s1, 0($sp)
+    sw $s1, 4($sp)
     li $s1, 0 # bandera para saber si lo último ocurrió
+    sw $s2, 0($sp) # Este guardado lo hago porque tengo las bolas llenas. Si se ingresan 2 comas seguidas esto debería respaldar
+    # el desalineado de la pila. Un poco jugado, pero no debería pisar nada, ya que no se escribe, se reserva.
+    move $s2, $sp
     # $t1, puntero a la dirección de la pila en sentido creciente
     li $t2, 0 # Contador de los caracteres revisados antes de la coma
     ExtraerVBucle:
@@ -56,10 +59,11 @@ ExtraerV:
         ExtraerVIf: bne $s1, 1, ExtraerVElse2 # Estaba la bandera alta? Pues significa que encontró el siguiente campo
                 li $s1, 0 # Restablezco la bandera
                 j ExtraerVSalto2
-        ExtraerVElse2:
+        ExtraerVElse2: beqz $t2, ExtraerVElse3
             sb $0, ($t1)
             jal AgregarNodo
             li $t2, 0 # Contador de los caracteres revisados antes de la coma
+            ExtraerVElse3:
             addi $sp, $sp, 4
             beqz $t0, ExtraerVListo # Por si no dio enter
             beq  $t0, 10, ExtraerVListo # \n
@@ -68,10 +72,12 @@ ExtraerV:
         j ExtraerVBucle
 
     ExtraerVListo:
-    lw $s1, 0($sp)
-    lw $s0, 4($sp)
-    lw $ra, 8($sp)
-    addi $sp, $sp, 12
+    move $sp, $s2
+    lw $s2, 0($sp)
+    lw $s1, 4($sp)
+    lw $s0, 8($sp)
+    lw $ra, 12($sp)
+    addi $sp, $sp, 16
 jr $ra
 
 AgregarNodo:
