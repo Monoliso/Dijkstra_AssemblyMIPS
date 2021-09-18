@@ -23,16 +23,13 @@ main:
     li $v0, 10
 syscall
 
-ExtraerV: # 55 líneas. Eso es bastante más que 30, casi el doble. Ésta versión debería manejar campos vacíos, comas seguidas, y nombres largos.
-    addi $sp, $sp, -16
-    sw $ra, 12($sp)
-    sw $s0, 8($sp) # Puntero al buffer
+ExtraerV:
+    addi $sp, $sp, -12
+    sw $ra, 8($sp)
+    sw $s0, 4($sp) # Puntero al buffer
     move $s0, $a0
-    sw $s1, 4($sp)
+    sw $s1, 0($sp)
     li $s1, 0 # bandera para saber si lo último ocurrió
-    sw $s2, 0($sp) # Este guardado lo hago porque tengo las bolas llenas. Si se ingresan 2 comas seguidas esto debería respaldar
-    # el desalineado de la pila. Un poco jugado, pero no debería pisar nada, ya que no se escribe, se reserva.
-    move $s2, $sp
     # $t1, puntero a la dirección de la pila en sentido creciente
     li $t2, 0 # Contador de los caracteres revisados antes de la coma
     ExtraerVBucle:
@@ -41,13 +38,13 @@ ExtraerV: # 55 líneas. Eso es bastante más que 30, casi el doble. Ésta versi�
         beq  $t0, 10, ExtraerVElse2 # \n
         beq $t0, 44, ExtraerVIf # Tras encontrar la coma salto a guardar el campo
         bnez $s1, ExtraerVSalto2 # Si la bandera está alta hay que ignorar caracteres
+        beq $t2, 3, ExtraerVSalto
+        beq $t0, 32, ExtraerVSig # Ignoro los espacios
         bge $t1, $sp, ExtraerVElse # No quiero pedir más pila por cada iteración
             addi $sp, $sp, -4
             move $t1, $sp
         ExtraerVElse:
-            beq $t2, 3, ExtraerVSalto
-            beq $t0, 32, ExtraerVSig # Ignoro los espacios
-                sb $t0, ($t1)
+            sb $t0, ($t1)
                 addi $t1, $t1, 1
                 addi $t2, $t2, 1
             ExtraerVSig:
@@ -63,8 +60,8 @@ ExtraerV: # 55 líneas. Eso es bastante más que 30, casi el doble. Ésta versi�
             sb $0, ($t1)
             jal AgregarNodo
             li $t2, 0 # Contador de los caracteres revisados antes de la coma
-            ExtraerVElse3:
             addi $sp, $sp, 4
+            ExtraerVElse3:
             beqz $t0, ExtraerVListo # Por si no dio enter
             beq  $t0, 10, ExtraerVListo # \n
         ExtraerVSalto2:
@@ -72,12 +69,10 @@ ExtraerV: # 55 líneas. Eso es bastante más que 30, casi el doble. Ésta versi�
         j ExtraerVBucle
 
     ExtraerVListo:
-    move $sp, $s2
-    lw $s2, 0($sp)
-    lw $s1, 4($sp)
-    lw $s0, 8($sp)
-    lw $ra, 12($sp)
-    addi $sp, $sp, 16
+    lw $s1, 0($sp)
+    lw $s0, 4($sp)
+    lw $ra, 8($sp)
+    addi $sp, $sp, 12
 jr $ra
 
 AgregarNodo:
