@@ -9,7 +9,6 @@ MatrizAdy: .word 0 # Matriz de adyacencia. Guardamos esta info para que sea fác
 Cementerio: .word 0
 Buffer: .space 49 # Máximo 10 nodos de 3
 
-## 44 , 45 -
 .text
 .globl main
 main:
@@ -17,38 +16,63 @@ main:
     la $a0, Buffer
     li $a1, 49
     syscall
-    la $a1, Buffer
-    lb $t0, ($a1)
-    mainBucle:
-        addi $sp, $sp, -4
-        move $t1, $sp
-        li $t2, 0
-        mainBucle2: beqz $t0, mainBucle3 # Por si no se puso un \n
-            beq $t0, 10, mainBucle3 # \n
-            beq $t0, 44, mainBucle3 # Tras encontrar la coma salto a guardar el campo
-            beq $t2, 3, mainBucle31
-                mainIf: beq $t0, 32, mainElse # Ignoro los espacios
-                    sb $t0, ($t1)
-                    addi $t1, $t1, 1
-                    addi $t2, $t2, 1
-                mainElse:
-                addi $a1, $a1, 1
-                lb $t0, ($a1)
-                j mainBucle2
-        mainBucle3:
-            addi $a1, $a1, 1
-        mainBucle31:
-        sb $0, ($t1)
-        jal AgregarNodo
-        addi $sp, $sp, 4
-        beqz $t0, mainListo # Sacamos esta línea y la de arriba comentada y peta cuando no le das enter
-        beq  $t0, 10, mainListo
-        lb $t0, ($a1)
-        j mainBucle
-    mainListo:
-    addi $sp, $sp, 4
+
+    la $a0, Buffer
+    jal ExtraerV
+    
     li $v0, 10
 syscall
+
+ExtraerV:
+    addi $sp, $sp, -12
+    sw $ra, 8($sp)
+    sw $s0, 4($sp) # Puntero al buffer
+    move $s0, $a0
+    sw $s1, 0($sp)
+    li $s1, 0 # bandera para saber si lo último ocurrió
+    # $t1, puntero a la dirección de la pila en sentido creciente
+    li $t2, 0 # Contador de los caracteres revisados antes de la coma
+    ExtraerVBucle:
+        lb $t0, ($s0)
+        beqz $t0, ExtraerVElse2 # Por si no dio enter
+        beq  $t0, 10, ExtraerVElse2 # \n
+        beq $t0, 44, ExtraerVIf # Tras encontrar la coma salto a guardar el campo
+        bnez $s1, ExtraerVSalto2 # Si la bandera está alta hay que ignorar caracteres
+        bge $t1, $sp, ExtraerVElse # No quiero pedir más pila por cada iteración
+            addi $sp, $sp, -4
+            move $t1, $sp
+        ExtraerVElse:
+            beq $t2, 3, ExtraerVSalto
+            beq $t0, 32, ExtraerVSig # Ignoro los espacios
+                sb $t0, ($t1)
+                addi $t1, $t1, 1
+                addi $t2, $t2, 1
+            ExtraerVSig:
+            addi $s0, $s0, 1
+            j ExtraerVBucle
+        ExtraerVSalto:
+            li $s1, 1 # Bandera que indica si se pasaron los 3 caracteres
+            j ExtraerVElse2
+        ExtraerVIf: bne $s1, 1, ExtraerVElse2 # Estaba la bandera alta? Pues significa que encontró el siguiente campo
+                li $s1, 0 # Restablezco la bandera
+                j ExtraerVSalto2
+        ExtraerVElse2:
+            sb $0, ($t1)
+            jal AgregarNodo
+            li $t2, 0 # Contador de los caracteres revisados antes de la coma
+            addi $sp, $sp, 4
+            beqz $t0, ExtraerVListo # Por si no dio enter
+            beq  $t0, 10, ExtraerVListo # \n
+        ExtraerVSalto2:
+        addi $s0, $s0, 1
+        j ExtraerVBucle
+
+    ExtraerVListo:
+    lw $s1, 0($sp)
+    lw $s0, 4($sp)
+    lw $ra, 8($sp)
+    addi $sp, $sp, 12
+jr $ra
 
 AgregarNodo:
     # s0 tiene la dirección del nodo
