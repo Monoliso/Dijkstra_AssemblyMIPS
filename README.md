@@ -1,8 +1,15 @@
+# Dijkstra en MIPS
+
 Este programa escrito en MIPS Assembly entre Septiembre y Octubre de 2021 permite 
 ingresar un multigrafo ponderado, ya sea direccional o no. Se desarrolló para 
-utilizarse en QTSpim Simulator. Tristemente Assembly es un lenguaje que no tiene
+utilizarse en QTSpim Simulator.
+
+Tristemente Assembly es un lenguaje que no tiene
 sentido utlizarse para proyectos de esta índole, porque hay soluciones que sirven mejor
-para este tipo de problemas
+para este tipo de problemas. 
+..
+De todas formas vamos a hacerlo, porque un desafío es un desafío.
+
 
 Funcionamiento:
 
