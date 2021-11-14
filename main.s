@@ -7,6 +7,7 @@ EtiquetasT: .word 0 # Etiquetados temporales
 EtiquetasP: .word 0 # Etiquetados permanentes
 Cementerio: .word 0
 Buffer: .space 49 # Máximo 10 nodos de 3
+# Una prueba mas
 
 .text
 .globl main
