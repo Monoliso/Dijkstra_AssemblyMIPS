@@ -3,7 +3,8 @@
 .data
 # Punteros
 MultigrafoP: .word 0 # Multigrafo ponderado
-DjikstraL: .word 0 # Lista enlazada con los nodos que utiliza Djikstra para realizar el algoritmo.
+EtiquetasT: .word 0 # Etiquetados temporales
+EtiquetasP: .word 0 # Etiquetados permanentes
 Cementerio: .word 0
 Buffer: .space 49 # Máximo 10 nodos de 3
 
